@@ -25,24 +25,38 @@ LED_TaskInfo irSendStop;
 static void LED_RunNextTick(LED_TaskInfo* taskInfo)
 {
     for (size_t i = 0; i < LED_NUM; i++) {
-        if (cachedNowPointNumber[i] + 1 == taskInfo->pointsLength[i] || taskInfo->points[i][cachedNowPointNumber[i + 1]].time == 0) {
+        LED_RGBPoint* point = taskInfo->points[i];
+        if (taskInfo->pointsLength[i] == 0 || cachedNowPointNumber[i] + 1 == taskInfo->pointsLength[i] || point[cachedNowPointNumber[i] + 1].time == 0) {
             /* 执行到最后一个转折点后面就不再执行这个LED的渐变了 */
             continue;
         }
-        if (taskInfo->points[i][cachedNowPointNumber[i]].time < nowTime && taskInfo->points[i][cachedNowPointNumber[i] + 1].time > nowTime) {
-            uint16_t deltaTime = taskInfo->points[i][cachedNowPointNumber[i] + 1].time - taskInfo->points[i][cachedNowPointNumber[i]].time;
-            uint16_t nowDeltaTime = nowTime - taskInfo->points[i][cachedNowPointNumber[i]].time;
+        LED_RGBPoint* nowPoint = &point[cachedNowPointNumber[i]];
+        LED_RGBPoint* nextPoint = &point[cachedNowPointNumber[i] + 1];
+        /* 对第一个点的特殊处理 */
+        if (cachedNowPointNumber[i] == 0 && nowPoint->time > nowTime) {
             set_pixel_for_GRB_LED(
                 ledData,
                 i,
-                (uint16_t)(taskInfo->points[i][cachedNowPointNumber[i]].r + (uint16_t)(taskInfo->points[i + 1][cachedNowPointNumber[i]].r - taskInfo->points[i][cachedNowPointNumber[i]].r) * nowDeltaTime / deltaTime) * LED_BRIGHTNESS / 255,
-                (uint16_t)(taskInfo->points[i][cachedNowPointNumber[i]].g + (uint16_t)(taskInfo->points[i + 1][cachedNowPointNumber[i]].g - taskInfo->points[i][cachedNowPointNumber[i]].g) * nowDeltaTime / deltaTime) * LED_BRIGHTNESS / 255,
-                (uint16_t)(taskInfo->points[i][cachedNowPointNumber[i]].b + (uint16_t)(taskInfo->points[i + 1][cachedNowPointNumber[i]].b - taskInfo->points[i][cachedNowPointNumber[i]].b) * nowDeltaTime / deltaTime) * LED_BRIGHTNESS / 255
+                nowPoint->r,
+                nowPoint->g,
+                nowPoint->b
             );
+        } else if (nowPoint->time <= nowTime && nextPoint->time > nowTime) {
+            int16_t deltaTime = nextPoint->time - nowPoint->time;
+            int16_t nowDeltaTime = nowTime - nowPoint->time;
+            set_pixel_for_GRB_LED(
+                ledData,
+                i,
+                (int16_t)nowPoint->r + (nextPoint->r - nowPoint->r) * nowDeltaTime / deltaTime,
+                (int16_t)nowPoint->g + (nextPoint->g - nowPoint->g) * nowDeltaTime / deltaTime,
+                (int16_t)nowPoint->b + (nextPoint->b - nowPoint->b) * nowDeltaTime / deltaTime
+            );
+        }
+        if (taskInfo->pointsLength[i] != 1 && nextPoint->time == nowTime + 1) {
+            /* 到达下一个转折点 */
             cachedNowPointNumber[i]++;
         }
     }
-    
     /* 更新红外数据包包含的当前时间 */
     intervalIRData[2] = nowTime >> 8;
     intervalIRData[3] = nowTime & 0xFF;
@@ -62,11 +76,11 @@ static void LED_RunNextTick(LED_TaskInfo* taskInfo)
 
 static void LED_AddPointToTask(LED_TaskInfo* taskInfo, uint8_t ledIndex, uint8_t r, uint8_t g, uint8_t b, uint16_t time)
 {
-    for (size_t i = 0; i < taskInfo->pointsLength[i]; i++) {
+    for (size_t i = 0; i < taskInfo->pointsLength[ledIndex]; i++) {
         if (taskInfo->points[ledIndex][i].time == 0) {
-            taskInfo->points[ledIndex][i].r = r;
-            taskInfo->points[ledIndex][i].g = g;
-            taskInfo->points[ledIndex][i].b = b;
+            taskInfo->points[ledIndex][i].r = (uint16_t)r * LED_BRIGHTNESS / 255;
+            taskInfo->points[ledIndex][i].g = (uint16_t)g * LED_BRIGHTNESS / 255;
+            taskInfo->points[ledIndex][i].b = (uint16_t)b * LED_BRIGHTNESS / 255;
             taskInfo->points[ledIndex][i].time = time;
             return;
         }
@@ -140,21 +154,21 @@ void LED_Setup()
     pinMode(LED_PIN, OUTPUT);
     /* LED任务，每个LED对应的转折点必须从时间小到大顺序添加 */
     /* TASK1 */
-    task1.cycleTime = 3000;
+    task1.cycleTime = 300;
     LED_MallocTaskBuffer(&task1, 0, 4);
     LED_AddPointToTask(&task1, 0, 255, 0, 0, 0);
-    LED_AddPointToTask(&task1, 0, 0, 255, 0, 1000);
-    LED_AddPointToTask(&task1, 0, 0, 0, 255, 2000);
-    LED_AddPointToTask(&task1, 0, 255, 0, 0, 3000);
+    LED_AddPointToTask(&task1, 0, 0, 255, 0, 100);
+    LED_AddPointToTask(&task1, 0, 0, 0, 255, 200);
+    LED_AddPointToTask(&task1, 0, 255, 0, 0, 300);
     /* 红外发送开始任务 */
-    irSendStart.cycleTime = 3000;
+    irSendStart.cycleTime = 300;
     LED_MallocTaskBuffer(&irSendStart, 0, 1);
-    LED_AddPointToTask(&irSendStart, 0, 255, 0, 0, 3000);
+    LED_AddPointToTask(&irSendStart, 0, 255, 0, 0, 300);
     /* 红外发送开始任务 */
-    irSendStop.cycleTime = 3000;
+    irSendStop.cycleTime = 300;
     LED_MallocTaskBuffer(&irSendStop, 0, 2);
     LED_AddPointToTask(&irSendStop, 0, 255, 0, 0, 0);
-    LED_AddPointToTask(&irSendStop, 0, 0, 0, 0, 3000);
+    LED_AddPointToTask(&irSendStop, 0, 0, 0, 0, 300);
     /* 默认任务 */
     runningTask = &task1;
 }
