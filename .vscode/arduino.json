@@ -2,5 +2,6 @@
     "configuration": "clock=24internal,usb_settings=usbcdc,upload_method=usb",
     "board": "CH55xDuino:mcs51:ch552",
     "sketch": "ledpcb.ino",
-    "output": "./build"
+    "output": "./build",
+    "prebuild": "python3 generate_led_task.py"
 }
