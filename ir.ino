@@ -77,7 +77,7 @@ void IR_Setup()
     pinMode(IR_RECV_PIN, INPUT_PULLUP);
     pinMode(IR_SEND_PIN, OUTPUT);
     digitalWrite(IR_SEND_PIN, 0);
-    attachInterrupt(IR_SEND_PIN_INT_NUM, recvPinCallback, FALLING);
+    attachInterrupt(IR_RECV_PIN_INT_NUM, recvPinCallback, FALLING);
     /* 初始化定时器，使用定时器2的计数模式 */
     T2MOD |= 0x40;
 	TH2 = 0x00;
@@ -88,17 +88,37 @@ void IR_Setup()
     TR2 = 1;
 }
 
+static void IR_NoticeLED()
+{
+    extern LED_TaskInfo task1;
+    if (receivedData[0] != 0xA1) return;
+    uint16_t time = (receivedData[2] << 8) | receivedData[3];
+    switch (receivedData[1]) {
+        case 1:
+            LED_ChangeTask(&task1, time);
+            break;
+        default:
+            USBSerial_println("Cannot recognize IR LED command");
+            return;
+    }
+    USBSerial_print("Synced LED with Task: ");
+    USBSerial_print(receivedData[1]);
+    USBSerial_print(", time: ");
+    USBSerial_println(time);
+}
+
 uint8_t tmpData[] = {0xA1, 0xA2, 0xA3, 0xA4};
 void IR_Loop()
 {
     if (isReceived) {
-        isReceived = 0;
         USBSerial_print("Received: 0x");
         USBSerial_print(receivedData[0], 16);
         USBSerial_print(receivedData[1], 16);
         USBSerial_print(receivedData[2], 16);
         USBSerial_print(receivedData[3], 16);
         USBSerial_println("");
+        IR_NoticeLED();
+        isReceived = 0;
     }
     if (USBSerial_available()) {
         uint8_t c = USBSerial_read();

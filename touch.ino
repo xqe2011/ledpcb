@@ -38,6 +38,12 @@ void Touch_Loop()
             return;
         }
         isIRSendEnable = !isIRSendEnable;
+        /* 播放声音 */
+        if (isIRSendEnable) {
+            Sound_Play(SOUND_IR_ENABLE);
+        } else {
+            Sound_Play(SOUND_IR_DISABLE);
+        }
         LED_SetIntervalIRSendEanble(isIRSendEnable);
     } else {
         irTouchDebounceTime = 0;
