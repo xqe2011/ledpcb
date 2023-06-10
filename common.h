@@ -11,17 +11,17 @@ typedef struct {
 } LED_RGBPoint;
 
 typedef struct {
-    LED_RGBPoint* points[LED_NUM];
+    const LED_RGBPoint* points[LED_NUM];
     size_t pointsLength[LED_NUM];
     uint16_t cycleTime;
 } LED_TaskInfo;
 
 void LED_Setup();
 void LED_Loop();
-void LED_ChangeTask(LED_TaskInfo* newTaskInfo, uint16_t startTime);
-void LED_ChangeTaskNext(LED_TaskInfo* newTaskInfo);
-LED_TaskInfo* LED_GetRunningTask();
-void LED_SetIntervalIRSendEanble(uint8_t enable);
+void LED_ChangeTask(const LED_TaskInfo* newTaskInfo, uint16_t startTime);
+void LED_ChangeTaskNext(const LED_TaskInfo* newTaskInfo);
+const LED_TaskInfo* LED_GetRunningTask();
+void LED_SetIntervalIRSendEnable(uint8_t enable);
 
 void Touch_Setup();
 void Touch_Loop();

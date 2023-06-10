@@ -1,8 +1,8 @@
 #include <TouchKey.h>
 #include "common.h"
 
-extern LED_TaskInfo irSendStart;
-extern LED_TaskInfo irSendStop;
+extern const LED_TaskInfo irSendStart;
+extern const LED_TaskInfo irSendStop;
 static uint8_t isIRSendEnable = 0;
 static uint32_t irTouchDebounceTime = 0;
 
@@ -44,7 +44,7 @@ void Touch_Loop()
         } else {
             Sound_Play(SOUND_IR_DISABLE);
         }
-        LED_SetIntervalIRSendEanble(isIRSendEnable);
+        LED_SetIntervalIRSendEnable(isIRSendEnable);
     } else {
         irTouchDebounceTime = 0;
     }

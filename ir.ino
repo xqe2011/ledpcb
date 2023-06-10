@@ -90,7 +90,7 @@ void IR_Setup()
 
 static void IR_NoticeLED()
 {
-    extern LED_TaskInfo task1;
+    extern const LED_TaskInfo task1;
     if (receivedData[0] != 0xA1) return;
     uint16_t time = (receivedData[2] << 8) | receivedData[3];
     switch (receivedData[1]) {
