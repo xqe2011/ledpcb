@@ -15,6 +15,8 @@ static uint8_t isIntervalIRSend = 0;
 static uint32_t lastIntervalIRSendTime = 0;
 static uint8_t intervalIRData[4] = { 0xA1, 0x01, 0x00, 0x00 };
 
+extern volatile uint8_t ledClockCompensationFlag;
+
 /* LED渐变转折点 */
 extern const LED_TaskInfo task1;
 extern const LED_TaskInfo irSendStart;
@@ -69,6 +71,7 @@ static void LED_RunNextTick(const LED_TaskInfo* taskInfo)
         nowTime = 0;
         memset(cachedNowPointNumber, 0, sizeof(cachedNowPointNumber));
     }
+    ledClockCompensationFlag = 1;
     LED_PIN_SEND_FUNCTION(ledData, NUM_BYTES);
 }
 
