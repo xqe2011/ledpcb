@@ -87,12 +87,15 @@ void LED_ChangeTask(const LED_TaskInfo* newTaskInfo, uint16_t startTime)
     nowTime = startTime;
     /* 更新缓存转折点快速查找表 */
     for (size_t i = 0; i < LED_NUM; i++) {
+        uint8_t lastPointFlag = 1;
         for (size_t a = 0; a < newTaskInfo->pointsLength[i]; a++) {
-            if (runningTask->points[i][a].time < startTime) {
-                cachedNowPointNumber[i] = a;
+            if (runningTask->points[i][a].time > startTime) {
+                cachedNowPointNumber[i] = a == 0 ? 0 : a - 1;
+                lastPointFlag = 0;
                 break;
             }
         }
+        if (lastPointFlag) cachedNowPointNumber[i] = newTaskInfo->pointsLength[i] - 1;
     }
 }
 

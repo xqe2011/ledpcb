@@ -30,9 +30,9 @@ void recvPinCallback() {
         isReceived = 0;
         receivedBitNum = 0;
     } else if (receivingFlag) {
-        if (timerCount38k > 78 && timerCount38k < 94) {
+        if (timerCount38k > 70 && timerCount38k < 102) {
             receivedData[receivedBitNum / 8] |= 1 << (receivedBitNum % 8);
-        } else if (timerCount38k > 39 && timerCount38k < 47){
+        } else if (timerCount38k > 35 && timerCount38k < 51){
             receivedData[receivedBitNum / 8] &= ~(1 << (receivedBitNum % 8));
         } else {
             /* 无效数据丢弃 */
@@ -66,32 +66,41 @@ void Timer2Interrupt(void) __interrupt (INT_NO_TMR2)
     }
     timerCount++;
     if (sendCountdown != 0) sendCountdown--;
-    if (sendIntervalNum != (sizeof(sendIntervals) / sizeof(sendIntervals[0])) && sendCountdown == 0) {
-        sendCountdown = sendIntervals[sendIntervalNum++];
-        sendLevelFlag = !sendLevelFlag;
+    /* 禁止自发自收 */
+    if (sendIntervalNum != (sizeof(sendIntervals) / sizeof(sendIntervals[0]))) {
+        if (sendCountdown == 0) {
+            sendCountdown = sendIntervals[sendIntervalNum++];
+            sendLevelFlag = !sendLevelFlag;
+        }
+    } else {
+        IR_RECV_PIN_IT_REG = 1;
     }
-    digitalWrite(IR_SEND_PIN, sendCountdown & 0x01);
+    digitalWrite(IR_SEND_PIN, sendLevelFlag && (sendCountdown & 0x01));
 }
 
 void IR_Send(uint8_t* data)
 {
+    USBSerial_println("Sent");
     /* 先关闭中断 */
     EA = 0;
-    /* 前导码 */
-    sendIntervals[0] = 685;
-    sendIntervals[1] = 343;
+    /* 前导码，下面的常数是计算了程序运行时间的 */
+    sendIntervals[0] = 655;
+    sendIntervals[1] = 327;
     uint8_t i = 0;
     for (i = 0; i < IR_BYTES_COUNT * 8; i++) {
         sendIntervals[2 * i + 2] = 43;
-        sendIntervals[2 * i + 3] = data[i / 8] & (0x80 >> (i % 8)) ? 129 : 43;
+        sendIntervals[2 * i + 3] = data[i / 8] & (0x01 << (i % 8)) ? 125 : 43;
     }
-    sendIntervals[2 * i + 4] = 81;
+    /* 循环跳出后仍会执行一次加法 */
+    i -= 1;
+    sendIntervals[2 * i + 4] = 79;
     sendIntervals[2 * i + 5] = 0;
     sendCountdown = sendIntervals[0];
     sendIntervalNum = 1;
     /* 注意由于我们需要进行位翻转，所以这里初始值应该位0或0xFF */
     sendLevelFlag = 0xFF;
     digitalWrite(IR_SEND_PIN, 0);
+    IR_RECV_PIN_IT_REG = 0;
     EA = 1;
 }
 
@@ -161,7 +170,6 @@ void IR_Loop()
         uint8_t c = USBSerial_read();
         if (c == 's') {
             IR_Send(tmpData);
-            USBSerial_println("Sent");
         }
     }
 }

@@ -14,6 +14,7 @@
 #define IR_SEND_PIN 34
 #define IR_RECV_PIN 33
 #define IR_RECV_PIN_INT_NUM 1
+#define IR_RECV_PIN_IT_REG EX1
 #define IR_DATA_SOF 0xA1
 #define IR_LED_CLOCK_COMPENSATION 10
 
