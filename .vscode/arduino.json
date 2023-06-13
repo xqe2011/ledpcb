@@ -3,5 +3,6 @@
     "board": "CH55xDuino:mcs51:ch552",
     "sketch": "ledpcb.ino",
     "output": "./build",
-    "prebuild": "python3 generate_led_task.py"
+    "prebuild": "python generate_led_task.py",
+    "port": "COM4"
 }

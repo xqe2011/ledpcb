@@ -65,17 +65,17 @@ void Timer2Interrupt(void) __interrupt (INT_NO_TMR2)
         ledClockCompensationFlag = 0;
     }
     timerCount++;
-    if (sendCountdown != 0) sendCountdown--;
     /* 禁止自发自收 */
     if (sendIntervalNum != (sizeof(sendIntervals) / sizeof(sendIntervals[0]))) {
+        if (sendCountdown != 0) sendCountdown--;
         if (sendCountdown == 0) {
             sendCountdown = sendIntervals[sendIntervalNum++];
             sendLevelFlag = !sendLevelFlag;
         }
+        digitalWrite(IR_SEND_PIN, sendLevelFlag && (sendCountdown & 0x01));
     } else {
         IR_RECV_PIN_IT_REG = 1;
     }
-    digitalWrite(IR_SEND_PIN, sendLevelFlag && (sendCountdown & 0x01));
 }
 
 void IR_Send(uint8_t* data)
@@ -123,7 +123,7 @@ void IR_Setup()
 
 static void IR_NoticeLED()
 {
-    extern const LED_TaskInfo task1;
+    extern __code const LED_TaskInfo task1;
     if (receivedData[0] != 0xA1) return;
     uint16_t time = (receivedData[2] << 8) | receivedData[3];
     switch (receivedData[1]) {
@@ -144,10 +144,10 @@ uint8_t tmpData[] = {0xA1, 0xA2, 0xA3, 0xA4};
 void IR_Loop()
 {
     uint32_t now = millis();
-    if (debugOutputTime - now > 1000) {
+    if (debugOutputTime - now > 10000) {
         debugOutputTime = now;
         if (debugPrintCount > 0) {
-            USBSerial_println("Debug:");
+            USBSerial_print("Debug:");
             for (uint8_t i = 0; i < debugPrintCount; i++) {
                 USBSerial_print(debugPrintBuffer[i]);
                 USBSerial_print(" ");

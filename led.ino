@@ -7,9 +7,9 @@
 static uint8_t __xdata ledData[NUM_BYTES];
 static uint16_t nowTime = 0; /* LED任务执行当前时间周期位置 */
 static uint8_t cachedNowPointNumber[LED_NUM] = {0};
-static const LED_TaskInfo* runningTask;
+static __code const LED_TaskInfo* runningTask;
 static uint32_t lastTickTime = 0;
-static const LED_TaskInfo* nextTask = 0;
+static __code const LED_TaskInfo* nextTask = 0;
 
 static uint8_t isIntervalIRSend = 0;
 static uint32_t lastIntervalIRSendTime = 0;
@@ -18,11 +18,11 @@ static uint8_t intervalIRData[4] = { 0xA1, 0x01, 0x00, 0x00 };
 extern volatile uint8_t ledClockCompensationFlag;
 
 /* LED渐变转折点 */
-extern const LED_TaskInfo task1;
-extern const LED_TaskInfo irSendStart;
-extern const LED_TaskInfo irSendStop;
+extern __code const LED_TaskInfo task1;
+extern __code const LED_TaskInfo irSendStart;
+extern __code const LED_TaskInfo irSendStop;
 
-static void LED_RunNextTick(const LED_TaskInfo* taskInfo)
+static void LED_RunNextTick(__code const LED_TaskInfo* taskInfo)
 {
     for (size_t i = 0; i < LED_NUM; i++) {
         const LED_RGBPoint* point = taskInfo->points[i];
@@ -81,21 +81,22 @@ static void LED_RunNextTick(const LED_TaskInfo* taskInfo)
  * @param newTaskInfo 新任务信息
  * @param startTime 开始时间
  */
-void LED_ChangeTask(const LED_TaskInfo* newTaskInfo, uint16_t startTime)
+void LED_ChangeTask(__code const LED_TaskInfo* newTaskInfo, uint16_t startTime)
 {
     runningTask = newTaskInfo;
     nowTime = startTime;
     /* 更新缓存转折点快速查找表 */
     for (size_t i = 0; i < LED_NUM; i++) {
         uint8_t lastPointFlag = 1;
-        for (size_t a = 0; a < newTaskInfo->pointsLength[i]; a++) {
+        for (size_t a = 0; a < runningTask->pointsLength[i]; a++) {
             if (runningTask->points[i][a].time > startTime) {
                 cachedNowPointNumber[i] = a == 0 ? 0 : a - 1;
                 lastPointFlag = 0;
                 break;
             }
         }
-        if (lastPointFlag) cachedNowPointNumber[i] = newTaskInfo->pointsLength[i] - 1;
+        if (lastPointFlag) cachedNowPointNumber[i] = runningTask->pointsLength[i] - 1;
+        if (runningTask->pointsLength[i] == 0) cachedNowPointNumber[i] = 0;
     }
 }
 
@@ -104,12 +105,12 @@ void LED_ChangeTask(const LED_TaskInfo* newTaskInfo, uint16_t startTime)
  * 
  * @param newTaskInfo 新任务信息
  */
-void LED_ChangeTaskNext(const LED_TaskInfo* newTaskInfo)
+void LED_ChangeTaskNext(__code const LED_TaskInfo* newTaskInfo)
 {
     nextTask = newTaskInfo;
 }
 
-const LED_TaskInfo* LED_GetRunningTask()
+__code const LED_TaskInfo* LED_GetRunningTask()
 {
     return runningTask;
 }
@@ -117,7 +118,7 @@ const LED_TaskInfo* LED_GetRunningTask()
 void LED_SetIntervalIRSendEnable(uint8_t enable)
 {
     isIntervalIRSend = enable;
-    const LED_TaskInfo* runningTask = LED_GetRunningTask();
+    __code const LED_TaskInfo* runningTask = LED_GetRunningTask();
     if (isIntervalIRSend) {
         LED_ChangeTask(&irSendStart, 0);
     } else {
@@ -136,7 +137,7 @@ void LED_Setup()
 void LED_Loop()
 {
     uint32_t now = millis();
-    if (now - lastTickTime > 10) {
+    if (now - lastTickTime > 9) {
         LED_RunNextTick(runningTask);
         lastTickTime = now;
     }

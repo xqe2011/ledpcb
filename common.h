@@ -18,9 +18,9 @@ typedef struct {
 
 void LED_Setup();
 void LED_Loop();
-void LED_ChangeTask(const LED_TaskInfo* newTaskInfo, uint16_t startTime);
-void LED_ChangeTaskNext(const LED_TaskInfo* newTaskInfo);
-const LED_TaskInfo* LED_GetRunningTask();
+void LED_ChangeTask(__code const LED_TaskInfo* newTaskInfo, uint16_t startTime);
+void LED_ChangeTaskNext(__code const LED_TaskInfo* newTaskInfo);
+__code const LED_TaskInfo* LED_GetRunningTask();
 void LED_SetIntervalIRSendEnable(uint8_t enable);
 
 void Touch_Setup();
