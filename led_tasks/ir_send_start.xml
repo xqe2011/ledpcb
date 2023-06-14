@@ -1,36 +1,21 @@
 <Task name="irSendStart" cycle="400">
     <Led>
-        <Point color="#FF0000" time="100" />
-        <Point color="#00FF00" time="200" />
-        <Point color="#0000FF" time="300" />
-        <Point color="#FF0000" time="400" />
+        <Point color="#00FF00" time="400" />
     </Led>
 
     <Led>
-        <Point color="#FF0000" time="100" />
-        <Point color="#00FF00" time="200" />
-        <Point color="#0000FF" time="300" />
-        <Point color="#FF0000" time="400" />
+        <Point color="#00FF00" time="400" />
     </Led>
 
     <Led>
-        <Point color="#FF0000" time="100" />
-        <Point color="#00FF00" time="200" />
-        <Point color="#0000FF" time="300" />
-        <Point color="#FF0000" time="400" />
+        <Point color="#00FF00" time="400" />
     </Led>
 
     <Led>
-        <Point color="#FF0000" time="100" />
-        <Point color="#00FF00" time="200" />
-        <Point color="#0000FF" time="300" />
-        <Point color="#FF0000" time="400" />
+        <Point color="#00FF00" time="400" />
     </Led>
 
     <Led>
-        <Point color="#FF0000" time="100" />
-        <Point color="#00FF00" time="200" />
-        <Point color="#0000FF" time="300" />
-        <Point color="#FF0000" time="400" />
+        <Point color="#00FF00" time="400" />
     </Led>
 </Task>

@@ -2,11 +2,11 @@
 
 #include "common.h"
 
-__code const LED_RGBPoint irSendStartMemory[] = {{255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}};
-__code const LED_TaskInfo irSendStart = {{&irSendStartMemory[0], &irSendStartMemory[4], &irSendStartMemory[8], &irSendStartMemory[12], &irSendStartMemory[16]}, {4, 4, 4, 4, 4}, 400};
+__code const LED_RGBPoint irSendStartMemory[] = {{0, 255, 0, 400}, {0, 255, 0, 400}, {0, 255, 0, 400}, {0, 255, 0, 400}, {0, 255, 0, 400}};
+__code const LED_TaskInfo irSendStart = {{&irSendStartMemory[0], &irSendStartMemory[1], &irSendStartMemory[2], &irSendStartMemory[3], &irSendStartMemory[4]}, {1, 1, 1, 1, 1}, 400};
     
-__code const LED_RGBPoint irSendStopMemory[] = {{255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}};
-__code const LED_TaskInfo irSendStop = {{&irSendStopMemory[0], &irSendStopMemory[4], &irSendStopMemory[8], &irSendStopMemory[12], &irSendStopMemory[16]}, {4, 4, 4, 4, 4}, 400};
+__code const LED_RGBPoint irSendStopMemory[] = {{0, 0, 255, 400}, {0, 0, 255, 400}, {0, 0, 255, 400}, {0, 0, 255, 400}, {0, 0, 255, 400}};
+__code const LED_TaskInfo irSendStop = {{&irSendStopMemory[0], &irSendStopMemory[1], &irSendStopMemory[2], &irSendStopMemory[3], &irSendStopMemory[4]}, {1, 1, 1, 1, 1}, 400};
     
 __code const LED_RGBPoint task1Memory[] = {{255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}, {255, 0, 0, 100}, {0, 255, 0, 200}, {0, 0, 255, 300}, {255, 0, 0, 400}};
 __code const LED_TaskInfo task1 = {{&task1Memory[0], &task1Memory[4], &task1Memory[8], &task1Memory[12], &task1Memory[16]}, {4, 4, 4, 4, 4}, 400};

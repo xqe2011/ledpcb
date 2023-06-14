@@ -11,7 +11,7 @@ static uint16_t sendIntervals[4 + IR_BYTES_COUNT * 8 * 2];
 static uint8_t sendIntervalNum = 0;
 static uint16_t sendCountdown = 0;
 static uint8_t sendLevelFlag = 0;
-volatile uint8_t ledClockCompensationFlag = 0;
+volatile uint8_t clockCompensation = 0;
 
 uint16_t debugPrintBuffer[128] = {0};
 uint8_t debugPrintCount;
@@ -21,7 +21,7 @@ uint32_t debugOutputTime = 0;
 #pragma nooverlay
 void recvPinCallback() {
     uint16_t timerCount38k = timerCount / 2;
-    if (timerCount38k < 1000) {
+    if (timerCount38k < 1000 && debugPrintCount != (sizeof(debugPrintBuffer) / sizeof(debugPrintBuffer[0]))) {
         debugPrintBuffer[debugPrintCount++] = timerCount38k;
     }
     /* 软件读出上一帧数据后再开始解析前导码 */
@@ -32,7 +32,7 @@ void recvPinCallback() {
     } else if (receivingFlag) {
         if (timerCount38k > 70 && timerCount38k < 102) {
             receivedData[receivedBitNum / 8] |= 1 << (receivedBitNum % 8);
-        } else if (timerCount38k > 35 && timerCount38k < 51){
+        } else if (timerCount38k > 31 && timerCount38k < 55){
             receivedData[receivedBitNum / 8] &= ~(1 << (receivedBitNum % 8));
         } else {
             /* 无效数据丢弃 */
@@ -54,16 +54,14 @@ void recvPinCallback() {
 void Timer2Interrupt(void) __interrupt (INT_NO_TMR2)
 {
     TF2 = 0;
-    /* LED时钟补偿 */
-    if (ledClockCompensationFlag) {
-        timerCount += IR_LED_CLOCK_COMPENSATION;
-        if (sendCountdown >= IR_LED_CLOCK_COMPENSATION) {
-            sendCountdown -= IR_LED_CLOCK_COMPENSATION;
-        } else {
-            sendCountdown = 0;
-        }
-        ledClockCompensationFlag = 0;
+    /* 时钟补偿 */
+    timerCount += clockCompensation;
+    if (sendCountdown >= clockCompensation) {
+        sendCountdown -= clockCompensation;
+    } else {
+        sendCountdown = 0;
     }
+    clockCompensation = 0;
     timerCount++;
     /* 禁止自发自收 */
     if (sendIntervalNum != (sizeof(sendIntervals) / sizeof(sendIntervals[0]))) {
@@ -78,22 +76,22 @@ void Timer2Interrupt(void) __interrupt (INT_NO_TMR2)
     }
 }
 
-void IR_Send(uint8_t* data)
+void IR_Send(__xdata uint8_t* data)
 {
-    USBSerial_println("Sent");
+    USBSerial_println("IR Sent");
     /* 先关闭中断 */
     EA = 0;
     /* 前导码，下面的常数是计算了程序运行时间的 */
-    sendIntervals[0] = 655;
-    sendIntervals[1] = 327;
+    sendIntervals[0] = 533;
+    sendIntervals[1] = 269;
     uint8_t i = 0;
     for (i = 0; i < IR_BYTES_COUNT * 8; i++) {
-        sendIntervals[2 * i + 2] = 43;
-        sendIntervals[2 * i + 3] = data[i / 8] & (0x01 << (i % 8)) ? 125 : 43;
+        sendIntervals[2 * i + 2] = 35;
+        sendIntervals[2 * i + 3] = data[i / 8] & (0x01 << (i % 8)) ? 105 : 35;
     }
     /* 循环跳出后仍会执行一次加法 */
     i -= 1;
-    sendIntervals[2 * i + 4] = 79;
+    sendIntervals[2 * i + 4] = 63;
     sendIntervals[2 * i + 5] = 0;
     sendCountdown = sendIntervals[0];
     sendIntervalNum = 1;
@@ -144,10 +142,10 @@ uint8_t tmpData[] = {0xA1, 0xA2, 0xA3, 0xA4};
 void IR_Loop()
 {
     uint32_t now = millis();
-    if (debugOutputTime - now > 10000) {
+    if (now - debugOutputTime > 1000) {
         debugOutputTime = now;
         if (debugPrintCount > 0) {
-            USBSerial_print("Debug:");
+            USBSerial_print("Debug: ");
             for (uint8_t i = 0; i < debugPrintCount; i++) {
                 USBSerial_print(debugPrintBuffer[i]);
                 USBSerial_print(" ");

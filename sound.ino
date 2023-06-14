@@ -17,6 +17,7 @@ static void Sound_Send(uint8_t cmd, uint8_t* data, size_t dataLength)
 
 void Sound_Play(uint8_t number)
 {
+    return;
     uint8_t data[4];
     /* 把number转换为数字填充到data */
     data[0] = 30;

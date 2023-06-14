@@ -32,6 +32,6 @@ void Sound_Play(uint8_t number);
 
 void IR_Setup();
 void IR_Loop();
-void IR_Send(uint8_t* data);
+void IR_Send(__xdata uint8_t* data);
 
 #endif

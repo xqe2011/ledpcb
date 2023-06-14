@@ -13,9 +13,9 @@ static __code const LED_TaskInfo* nextTask = 0;
 
 static uint8_t isIntervalIRSend = 0;
 static uint32_t lastIntervalIRSendTime = 0;
-static uint8_t intervalIRData[4] = { 0xA1, 0x01, 0x00, 0x00 };
+static __xdata uint8_t intervalIRData[4] = { 0xA1, 0x01, 0x00, 0x00 };
 
-extern volatile uint8_t ledClockCompensationFlag;
+extern volatile uint8_t clockCompensation;
 
 /* LED渐变转折点 */
 extern __code const LED_TaskInfo task1;
@@ -26,6 +26,17 @@ static void LED_RunNextTick(__code const LED_TaskInfo* taskInfo)
 {
     for (size_t i = 0; i < LED_NUM; i++) {
         const LED_RGBPoint* point = taskInfo->points[i];
+        /* 对只有一个点的LED特殊处理 */
+        if (taskInfo->pointsLength[i] == 1) {
+            set_pixel_for_GRB_LED(
+                ledData,
+                i,
+                point[0].r,
+                point[0].g,
+                point[0].b
+            );
+            continue;
+        }
         if (taskInfo->pointsLength[i] == 0 || cachedNowPointNumber[i] + 1 == taskInfo->pointsLength[i] || point[cachedNowPointNumber[i] + 1].time == 0) {
             /* 执行到最后一个转折点后面就不再执行这个LED的渐变了 */
             continue;
@@ -71,7 +82,7 @@ static void LED_RunNextTick(__code const LED_TaskInfo* taskInfo)
         nowTime = 0;
         memset(cachedNowPointNumber, 0, sizeof(cachedNowPointNumber));
     }
-    ledClockCompensationFlag = 1;
+    clockCompensation += LED_CLOCK_COMPENSATION;
     LED_PIN_SEND_FUNCTION(ledData, NUM_BYTES);
 }
 
